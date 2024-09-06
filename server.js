@@ -2,7 +2,6 @@ require('dotenv').config();
 require('express-async-errors');
 const methodOverride = require("method-override");
 const express = require('express');
-const app = express();
 const cors = require("cors");
 const connectDB = require('./db/connect');
 const ms = require("ms");
@@ -66,11 +65,13 @@ const sessionOptions = {
   resave: false,
   saveUninitialized: false,
 };
-// middleware
+
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
+
+const app = express();
 app.use(cors(corsOptions));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -79,27 +80,10 @@ app.use(cookieParser("ab231"));
 app.use(methodOverride("_method"));
 app.use('/uploads', express.static(uploadDir));
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
-// routes
-
 app.use('/api/v1/products', productsRouter);
-
-// products route
-
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
-const port =  8000;
 
 const server = awsServerlessExpress.createServer(app);
 
-exports.handler = (event, context) => awsServerlessExpress.proxy(server, event, context); // ส่งออกฟังก์ชัน handler
-const start = async () => {
-  try {
-    // connectDB
-    await connectDB(process.env.MONGODB_URL);
-    app.listen(port, () => console.log(`Server is listening port ${port}...`));
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-start();
+exports.handler = (event, context) => awsServerlessExpress.proxy(server, event, context);
