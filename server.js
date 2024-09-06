@@ -17,7 +17,7 @@ const path = require('path');
 const fs = require('fs');
 
 const corsOptions = {
-  origin: ["http://localhost:3000"],
+  origin: ["https://front-admin-pi.vercel.app"],
   credentials: true,
   optionSuccessStatus: 200,
 };
