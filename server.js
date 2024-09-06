@@ -23,8 +23,9 @@ const corsOptions = {
   credentials: true,
   optionSuccessStatus: 200,
 };
+
 const setupRedis = async () => {
-  let redisClient = createClient({
+  const redisClient = createClient({
     url: process.env.REDIS_URL,
     legacyMode: true,
   });
@@ -49,41 +50,47 @@ const setupSession = (redisClient) => {
     prefix: "myapp:",
   });
 };
-const redisClient = async () => {
-  await setupRedis();
+
+const startServer = async () => {
+  const redisClient = await setupRedis();
+  const redisStore = setupSession(redisClient);
+
+  const sessionOptions = {
+    store: redisStore,
+    secret: process.env.SECRET_URL,
+    cookie: {
+      httpOnly: true,
+      secure: true,
+      maxAge: ms("3d"),
+    },
+    rolling: true,
+    resave: false,
+    saveUninitialized: false,
+  };
+
+  const uploadDir = path.join(__dirname, 'uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+  }
+
+  const app = express();
+  app.use(cors(corsOptions));
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json());
+  app.use(session(sessionOptions));
+  app.use(cookieParser("ab231"));
+  app.use(methodOverride("_method"));
+  app.use('/uploads', express.static(uploadDir));
+  app.use('/images', express.static(path.join(__dirname, 'public/images')));
+  app.use('/api/v1/products', productsRouter);
+  app.use(notFoundMiddleware);
+  app.use(errorMiddleware);
+
+  return awsServerlessExpress.createServer(app);
 };
-const redisStore = setupSession(redisClient);
-const sessionOptions = {
-  store: redisStore,
-  secret: process.env.SECRET_URL,
-  cookie: {
-    httpOnly: true,
-    secure: true,
-    maxAge: ms("3d"),
-  },
-  rolling: true,
-  resave: false,
-  saveUninitialized: false,
+
+// Lambda Handler
+exports.handler = async (event, context) => {
+  const server = await startServer();
+  return awsServerlessExpress.proxy(server, event, context);
 };
-
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
-
-const app = express();
-app.use(cors(corsOptions));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(session(sessionOptions));
-app.use(cookieParser("ab231"));
-app.use(methodOverride("_method"));
-app.use('/uploads', express.static(uploadDir));
-app.use('/images', express.static(path.join(__dirname, 'public/images')));
-app.use('/api/v1/products', productsRouter);
-app.use(notFoundMiddleware);
-app.use(errorMiddleware);
-
-const server = awsServerlessExpress.createServer(app);
-
-exports.handler = (event, context) => awsServerlessExpress.proxy(server, event, context);
