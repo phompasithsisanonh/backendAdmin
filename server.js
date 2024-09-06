@@ -22,7 +22,7 @@ const corsOptions = {
   optionSuccessStatus: 200,
 };
 const sessionOptions = {
-  secret: "abcde111",
+  secret: process.env.SECRET_URL,
   cookie: {
     httpOnly: true,
     secure: true,

@@ -69,7 +69,7 @@ const AuthTicat = async (req, res, next) => {
       });
     }
 
-    const decoded = await promisify(jwt.verify)(token, "ab231");
+    const decoded = await promisify(jwt.verify)(token, process.env.TOKEN_SECRET);
     const currentUser = await Users.findById(decoded._id);
     if (!currentUser) {
       return res.status(401).json({
