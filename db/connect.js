@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+require('dotenv').config(); // Ensure this is at the top of your file
 
 // Options for MongoDB connection
 const options = {
