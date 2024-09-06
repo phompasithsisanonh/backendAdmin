@@ -1,0 +1,21 @@
+[
+    {
+      "customerName": "accent chair",
+      "customerID": "0012",
+      "tel": "marcos",
+      "address": "new york"
+    },
+    {
+      "customerName": "accent chair",
+      "customerID": "0013",
+      "tel": "marcos",
+      "address": "new york"
+    },
+    {
+      "customerName": "accent chair",
+      "customerID":"0014",
+      "tel": "marcos",
+      "address": "new york"
+    }
+
+  ]
