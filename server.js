@@ -17,6 +17,8 @@ const fs = require('fs');
 const session = require("express-session");
 const { createClient } = require("redis");
 const RedisStore = require("connect-redis").default; 
+const awsServerlessExpress = require('aws-serverless-express');
+
 const corsOptions = {
   origin: ["https://front-admin-pi.vercel.app"],
   credentials: true,
@@ -87,6 +89,9 @@ app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 const port =  8000;
 
+const server = awsServerlessExpress.createServer(app);
+
+exports.handler = (event, context) => awsServerlessExpress.proxy(server, event, context); // ส่งออกฟังก์ชัน handler
 const start = async () => {
   try {
     // connectDB
