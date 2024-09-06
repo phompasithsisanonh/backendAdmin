@@ -7,7 +7,6 @@ const cors = require("cors");
 const connectDB = require('./db/connect');
 const ms = require("ms");
 const productsRouter = require('./routes/products');
-const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const notFoundMiddleware = require('./middleware/not-found');
@@ -15,13 +14,46 @@ const errorMiddleware = require('./middleware/error-handler');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-
+const session = require("express-session");
+const { createClient } = require("redis");
+const RedisStore = require("connect-redis").default; 
 const corsOptions = {
   origin: ["https://front-admin-pi.vercel.app"],
   credentials: true,
   optionSuccessStatus: 200,
 };
+const setupRedis = async () => {
+  let redisClient = createClient({
+    url: process.env.REDIS_URL,
+    legacyMode: true,
+  });
+
+  redisClient.on("error", (err) => {
+    console.error("Redis Client Error", err);
+  });
+
+  try {
+    await redisClient.connect();
+    console.log("Connected to Redis");
+  } catch (err) {
+    console.error("Error connecting to Redis:", err);
+  }
+
+  return redisClient;
+};
+
+const setupSession = (redisClient) => {
+  return new RedisStore({
+    client: redisClient,
+    prefix: "myapp:",
+  });
+};
+const redisClient = async () => {
+  await setupRedis();
+};
+const redisStore = setupSession(redisClient);
 const sessionOptions = {
+  store: redisStore,
   secret: process.env.SECRET_URL,
   cookie: {
     httpOnly: true,

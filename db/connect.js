@@ -1,18 +1,19 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
+
+// Options for MongoDB connection
 const options = {
-  serverSelectionTimeoutMS: 5000,
-  autoIndex: false,
-  maxPoolSize: 10,
-  socketTimeoutMS: 45000,
-  family: 4,
+  serverSelectionTimeoutMS: 5000,  // Timeout for server selection
+  autoIndex: false,                // Disable automatic index creation (useful for production)
+  maxPoolSize: 10,                 // Maximum number of connections in the pool
+  socketTimeoutMS: 45000,          // Socket timeout in milliseconds
+  family: 4,                       // IPv4 only
 };
 
 const connectDB = (url) => {
   return mongoose
-  .connect(process.env.MONGODB_URL, options)
-  .then(() => console.log("DB is connected"))
-  .catch((err) => console.error(err));
+    .connect(url, options)
+    .then(() => console.log("DB is connected"))
+    .catch((err) => console.error("DB connection error:", err));
+};
 
-}
-
-module.exports = connectDB
+module.exports = connectDB;
