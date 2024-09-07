@@ -25,51 +25,51 @@ const corsOptions = {
   optionSuccessStatus: 200,
 };
 
-(async () => {
-  const setupRedis = async () => {
-    let redisClient = createClient({
-      url: process.env.REDIS_URL,
-      legacyMode: true,
-    });
-  
-    redisClient.on("error", (err) => {
-      console.error("Redis Client Error", err);
-    });
-  
-    try {
-      await redisClient.connect();
-      console.log("Connected to Redis");
-    } catch (err) {
-      console.error("Error connecting to Redis:", err);
-    }
-  
-    return redisClient;
-  };
-  
-  const setupSession = (redisClient) => {
-    return new RedisStore({
-      client: redisClient,
-      prefix: "myapp:",
-    });
-  };
-  const redisClient = async () => {
-    await setupRedis();
-  };
-  const redisStore = setupSession(redisClient);
-  const sessionOptions = {
-    store: redisStore,
-    secret: process.env.SECRET_URL,
-    cookie: {
-      httpOnly: true,
-      secure: true,
-      maxAge: ms("3d"),
-    },
-    rolling: true,
-    resave: false,
-    saveUninitialized: false,
-  };
-  
 
+(async () => {
+    const setupRedis = async () => {
+        let redisClient = createClient({
+          url: process.env.REDIS_URL,
+          legacyMode: true,
+        });
+      
+        redisClient.on("error", (err) => {
+          console.error("Redis Client Error", err);
+        });
+      
+        try {
+          await redisClient.connect();
+          console.log("Connected to Redis");
+        } catch (err) {
+          console.error("Error connecting to Redis:", err);
+        }
+      
+        return redisClient;
+      };
+      
+      const setupSession = (redisClient) => {
+        return new RedisStore({
+          client: redisClient,
+          prefix: "myapp:",
+        });
+      };
+      const redisClient = async () => {
+        await setupRedis();
+      };
+      const redisStore = setupSession(redisClient);
+      const sessionOptions = {
+        store: redisStore,
+        secret: process.env.SECRET_URL,
+        cookie: {
+          httpOnly: true,
+          secure: true,
+          maxAge: ms("3d"),
+        },
+        rolling: true,
+        resave: false,
+        saveUninitialized: false,
+      };
+      
   // middleware
   const uploadDir = path.join(__dirname, 'uploads');
   if (!fs.existsSync(uploadDir)) {
@@ -90,6 +90,8 @@ const corsOptions = {
   // products route
   app.use(notFoundMiddleware);
   app.use(errorMiddleware);
+
+  // Connect to DB
   try {
     await connectDB(process.env.MONGODB_URL);
     console.log("MongoDB connected successfully");
@@ -97,8 +99,7 @@ const corsOptions = {
     console.error("DB connection error:", error);
     process.exit(1);
   }
-  const port = 8000;
-  app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
-  });
 })();
+
+// Export handler for AWS Lambda
+module.exports.handler = ServerlessExpress(app);
