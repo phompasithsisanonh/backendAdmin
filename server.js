@@ -99,6 +99,9 @@ const setupMiddleware = async () => {
   }
 };
 
-setupMiddleware();
+setupMiddleware().catch(error => {
+  console.error("Setup Error:", error);
+  process.exit(1);
+});;
 
 module.exports = app;
