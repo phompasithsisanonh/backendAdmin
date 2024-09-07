@@ -17,7 +17,6 @@ const fs = require('fs');
 const session = require("express-session");
 const { createClient } = require("redis");
 const RedisStore = require("connect-redis").default; 
-const serverless = require('serverless-http');
 
 const corsOptions = {
   origin: ["https://front-admin-pi.vercel.app"],
@@ -25,6 +24,7 @@ const corsOptions = {
   optionSuccessStatus: 200,
 };
 
+// Middleware setup
 const setupMiddleware = async () => {
   const setupRedis = async () => {
     let redisClient = createClient({
@@ -69,7 +69,7 @@ const setupMiddleware = async () => {
     saveUninitialized: false,
   };
   
-  // middleware
+  // Middleware
   const uploadDir = path.join(__dirname, 'uploads');
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
@@ -83,10 +83,10 @@ const setupMiddleware = async () => {
   app.use('/uploads', express.static(uploadDir));
   app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
-  // routes
+  // Routes
   app.use('/api/v1/products', productsRouter);
 
-  // error handling
+  // Error handling
   app.use(notFoundMiddleware);
   app.use(errorMiddleware);
 
@@ -101,10 +101,4 @@ const setupMiddleware = async () => {
 
 setupMiddleware();
 
-// Wrap the Express app with serverless-http
-const handler = serverless(app);
-
-// Export the handler for Lambda
-exports.handler = async (event, context) => {
-  return handler(event, context);
-};
+module.exports = app;
