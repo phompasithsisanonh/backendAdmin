@@ -17,7 +17,7 @@ const fs = require('fs');
 const session = require("express-session");
 const { createClient } = require("redis");
 const RedisStore = require("connect-redis").default; 
-const ServerlessExpress = require('serverless-http');
+const serverless = require('serverless-http');
 
 const corsOptions = {
   origin: ["https://front-admin-pi.vercel.app"],
@@ -25,7 +25,7 @@ const corsOptions = {
   optionSuccessStatus: 200,
 };
 
-(async () => {
+const setupMiddleware = async () => {
   const setupRedis = async () => {
     let redisClient = createClient({
       url: process.env.REDIS_URL,
@@ -69,7 +69,6 @@ const corsOptions = {
     saveUninitialized: false,
   };
   
-
   // middleware
   const uploadDir = path.join(__dirname, 'uploads');
   if (!fs.existsSync(uploadDir)) {
@@ -87,9 +86,10 @@ const corsOptions = {
   // routes
   app.use('/api/v1/products', productsRouter);
 
-  // products route
+  // error handling
   app.use(notFoundMiddleware);
   app.use(errorMiddleware);
+
   try {
     await connectDB(process.env.MONGODB_URL);
     console.log("MongoDB connected successfully");
@@ -97,8 +97,14 @@ const corsOptions = {
     console.error("DB connection error:", error);
     process.exit(1);
   }
-  const port = 8000;
-  app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
-  });
-})();
+};
+
+setupMiddleware();
+
+// Wrap the Express app with serverless-http
+const handler = serverless(app);
+
+// Export the handler for Lambda
+exports.handler = async (event, context) => {
+  return handler(event, context);
+};
