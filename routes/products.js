@@ -4,9 +4,9 @@ const Users = require("../models/UserModel");
 const { Test, updatePro } = require("../ban");
 const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 const {
   registerController,
   loginController,
@@ -33,9 +33,12 @@ const { orderProducts, autocomplete } = require("../controllers/Inder");
 const { getAllOrder } = require("../controllers/getAllOrder");
 const { updateStatus } = require("../controllers/updateStatus");
 const { notifyLineQueality } = require("../controllers/notifyLineQueality");
-const { historyCustomer, historyProducts } = require("../controllers/historyCustomer");
+const {
+  historyCustomer,
+  historyProducts,
+} = require("../controllers/historyCustomer");
 const { blockUser } = require("../controllers/ิblockUser");
-const uploadDir = path.join(__dirname, '../uploads');
+const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
@@ -46,7 +49,7 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname)); // Append timestamp to ensure unique filenames
-  }
+  },
 });
 
 const upload = multer({ storage: storage });
@@ -69,7 +72,10 @@ const AuthTicat = async (req, res, next) => {
       });
     }
 
-    const decoded = await promisify(jwt.verify)(token, process.env.TOKEN_SECRET);
+    const decoded = await promisify(jwt.verify)(
+      token,
+      process.env.TOKEN_SECRET
+    );
     const currentUser = await Users.findById(decoded._id);
     if (!currentUser) {
       return res.status(401).json({
@@ -91,18 +97,23 @@ const AuthTicat = async (req, res, next) => {
 router.put("/updateCollectionName", updatePro);
 router.get("/sortCollectionPriceCompany", Test);
 router.get("/createCategoryController", createCategoryController);
-
+router.get("/Ga", (req, res, next) => {
+  return res.json({ message: "hello" });
+});
 //ອັດເດດປະເພດສິນຄ້າ
 router.post("/register", registerController);
 router.post("/login", loginController);
 router.post("/customer", AuthTicat, customer);
 router.post("/orderStatusController/:id", AuthTicat, orderStatusController);
 router.post("/updateController", AuthTicat, updateController);
-router.post("/createProductController",  upload.single('image'),AuthTicat, createProductController);
+router.post(
+  "/createProductController",
+  upload.single("image"),
+  AuthTicat,
+  createProductController
+);
 router.post("/order", AuthTicat, orderProducts);
-router.post('/blockUser/:id',blockUser)
-
-
+router.post("/blockUser/:id", blockUser);
 
 router.get("/getOrdersController/:id", AuthTicat, getOrdersController);
 router.get("/getAllOrdersController", AuthTicat, getAllOrdersController);
@@ -111,9 +122,9 @@ router.get("/getProducts", getProducts);
 router.get("/getAllorder", getAllOrder);
 router.get("/getAllAdmin", getAllAdmin);
 router.get("/autocomplete", autocomplete);
-router.get('/alerts',notifyLineQueality)
-router.get('/historyCustomer',historyCustomer)
-router.get('/historyProducts',historyProducts)
+router.get("/alerts", notifyLineQueality);
+router.get("/historyCustomer", historyCustomer);
+router.get("/historyProducts", historyProducts);
 
 router.delete("/delete/:id", deleteController);
 router.delete("/deleteCustomer/:id", deleteCustomerController);
