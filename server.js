@@ -24,79 +24,73 @@ const corsOptions = {
   credentials: true,
   optionSuccessStatus: 200,
 };
-const setupRedis = async () => {
-  let redisClient = createClient({
-    url: process.env.REDIS_URL,
-    legacyMode: true,
-  });
 
-  redisClient.on("error", (err) => {
-    console.error("Redis Client Error", err);
-  });
+(async () => {
+  const setupRedis = async () => {
+    let redisClient = createClient({
+      url: process.env.REDIS_URL,
+      legacyMode: true,
+    });
+  
+    redisClient.on("error", (err) => {
+      console.error("Redis Client Error", err);
+    });
+  
+    try {
+      await redisClient.connect();
+      console.log("Connected to Redis");
+    } catch (err) {
+      console.error("Error connecting to Redis:", err);
+    }
+  
+    return redisClient;
+  };
+  
+  const setupSession = (redisClient) => {
+    return new RedisStore({
+      client: redisClient,
+      prefix: "myapp:",
+    });
+  };
+  const redisClient = async () => {
+    await setupRedis();
+  };
+  const redisStore = setupSession(redisClient);
+  const sessionOptions = {
+    store: redisStore,
+    secret: process.env.SECRET_URL,
+    cookie: {
+      httpOnly: true,
+      secure: true,
+      maxAge: ms("3d"),
+    },
+    rolling: true,
+    resave: false,
+    saveUninitialized: false,
+  };
+  
 
-  try {
-    await redisClient.connect();
-    console.log("Connected to Redis");
-  } catch (err) {
-    console.error("Error connecting to Redis:", err);
+  // middleware
+  const uploadDir = path.join(__dirname, 'uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
   }
+  app.use(cors(corsOptions));
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json());
+  app.use(session(sessionOptions));
+  app.use(cookieParser("ab231"));
+  app.use(methodOverride("_method"));
+  app.use('/uploads', express.static(uploadDir));
+  app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
-  return redisClient;
-};
+  // routes
+  app.use('/api/v1/products', productsRouter);
 
-const setupSession = (redisClient) => {
-  return new RedisStore({
-    client: redisClient,
-    prefix: "myapp:",
-  });
-};
-const redisClient = async () => {
-  await setupRedis();
-};
-const redisStore = setupSession(redisClient);
-const sessionOptions = {
-  store: redisStore,
-  secret: process.env.SECRET_URL,
-  cookie: {
-    httpOnly: true,
-    secure: true,
-    maxAge: ms("3d"),
-  },
-  rolling: true,
-  resave: false,
-  saveUninitialized: false,
-};
-// middleware
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
-app.use(cors(corsOptions));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(session(sessionOptions));
-app.use(cookieParser("ab231"));
-app.use(methodOverride("_method"));
-app.use('/uploads', express.static(uploadDir));
-app.use('/images', express.static(path.join(__dirname, 'public/images')));
-// routes
+  // products route
+  app.use(notFoundMiddleware);
+  app.use(errorMiddleware);
+})();
 
-app.use('/api/v1/products', productsRouter);
-
-// products route
-
-app.use(notFoundMiddleware);
-app.use(errorMiddleware);
-const port =  8000;
-const start = async () => {
-  try {
-    // connectDB
-    await connectDB(process.env.MONGODB_URL);
-    app.listen(port, () => console.log(`Server is listening port ${port}...`));
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-start();
-module.exports.handler = ServerlessExpress(app)
+// Export handler for AWS Lambda
+module.exports.handler = ServerlessExpress(app);
