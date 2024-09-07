@@ -2,6 +2,7 @@ require('dotenv').config();
 require('express-async-errors');
 const methodOverride = require("method-override");
 const express = require('express');
+const app = express();
 const cors = require("cors");
 const connectDB = require('./db/connect');
 const ms = require("ms");
@@ -16,16 +17,15 @@ const fs = require('fs');
 const session = require("express-session");
 const { createClient } = require("redis");
 const RedisStore = require("connect-redis").default; 
-const awsServerlessExpress = require('aws-serverless-express');
+const ServerlessExpress = require('serverless-http');
 
 const corsOptions = {
   origin: ["https://front-admin-pi.vercel.app"],
   credentials: true,
   optionSuccessStatus: 200,
 };
-
 const setupRedis = async () => {
-  const redisClient = createClient({
+  let redisClient = createClient({
     url: process.env.REDIS_URL,
     legacyMode: true,
   });
@@ -50,47 +50,53 @@ const setupSession = (redisClient) => {
     prefix: "myapp:",
   });
 };
+const redisClient = async () => {
+  await setupRedis();
+};
+const redisStore = setupSession(redisClient);
+const sessionOptions = {
+  store: redisStore,
+  secret: process.env.SECRET_URL,
+  cookie: {
+    httpOnly: true,
+    secure: true,
+    maxAge: ms("3d"),
+  },
+  rolling: true,
+  resave: false,
+  saveUninitialized: false,
+};
+// middleware
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+app.use(cors(corsOptions));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(session(sessionOptions));
+app.use(cookieParser("ab231"));
+app.use(methodOverride("_method"));
+app.use('/uploads', express.static(uploadDir));
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
+// routes
 
-const startServer = async () => {
-  const redisClient = await setupRedis();
-  const redisStore = setupSession(redisClient);
+app.use('/api/v1/products', productsRouter);
 
-  const sessionOptions = {
-    store: redisStore,
-    secret: process.env.SECRET_URL,
-    cookie: {
-      httpOnly: true,
-      secure: true,
-      maxAge: ms("3d"),
-    },
-    rolling: true,
-    resave: false,
-    saveUninitialized: false,
-  };
+// products route
 
-  const uploadDir = path.join(__dirname, 'uploads');
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
+app.use(notFoundMiddleware);
+app.use(errorMiddleware);
+const port =  8000;
+const start = async () => {
+  try {
+    // connectDB
+    await connectDB(process.env.MONGODB_URL);
+    app.listen(port, () => console.log(`Server is listening port ${port}...`));
+  } catch (error) {
+    console.log(error);
   }
-
-  const app = express();
-  app.use(cors(corsOptions));
-  app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(bodyParser.json());
-  app.use(session(sessionOptions));
-  app.use(cookieParser("ab231"));
-  app.use(methodOverride("_method"));
-  app.use('/uploads', express.static(uploadDir));
-  app.use('/images', express.static(path.join(__dirname, 'public/images')));
-  app.use('/api/v1/products', productsRouter);
-  app.use(notFoundMiddleware);
-  app.use(errorMiddleware);
-
-  return awsServerlessExpress.createServer(app);
 };
 
-// Lambda Handler
-exports.handler = async (event, context) => {
-  const server = await startServer();
-  return awsServerlessExpress.proxy(server, event, context);
-};
+start();
+module.exports.handler = ServerlessExpress(app)
