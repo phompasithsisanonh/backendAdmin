@@ -7,6 +7,11 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const userModel = require("../models/UserModel");
+const orderModel = require("../models/orderModel");
+const Products = require("../models/productModel");
+const JWT = require("jsonwebtoken");
+const { compare1, hashPassword } = require("../helper/hashPassword");
 const {
   registerController,
   loginController,
@@ -97,8 +102,48 @@ const AuthTicat = async (req, res, next) => {
 router.put("/updateCollectionName", updatePro);
 router.get("/sortCollectionPriceCompany", Test);
 router.get("/createCategoryController", createCategoryController);
-router.get("/Ga", (req, res, next) => {
-  return res.json({ message: "hello" });
+router.post("/Ga", async(req, res, next) => {
+  try {
+    const { firstName, email, password, passwordID,status,tel } = req.body;
+    if (!firstName) {
+      return res.send({ error: "Name is Required" });
+    }
+    if (!email) {
+      return res.send({ message: "Email is Required" });
+    }
+    if (!password) {
+      return res.send({ message: "Password is Required" });
+    }
+    const exisitingUser = await userModel.findOne({ email });
+    //exisiting user
+    if (exisitingUser) {
+      return res.status(200).send({
+        success: false,
+        message: "Already Register please login",
+      });
+    }
+    const hashedPassword = await hashPassword(password);
+    const user = await new userModel({
+      firstName,
+      email,
+      password: hashedPassword,
+      passwordID,
+      status,
+      tel
+    }).save();
+    res.status(201).send({
+      success: true,
+      message: "User Register Successfully",
+      user,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Errro in Registeration",
+      error,
+    });
+  }
 });
 //ອັດເດດປະເພດສິນຄ້າ
 router.post("/register", registerController);
