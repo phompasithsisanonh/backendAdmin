@@ -45,7 +45,7 @@ const productSchema = new Schema(
       default: "sale",
       enum: ["sale"],
     },
-    image: { type: String },
+    // image: { type: String },
     codeProducts: {
       type: String,
       required: true,

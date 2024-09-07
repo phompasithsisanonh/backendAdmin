@@ -27,10 +27,10 @@ const createProductController = async (req, res) => {
     }
 
     // Set image path if file is uploaded
-    let imagePath = '';
-    if (req.file) {
-      imagePath = `/uploads/${req.file.filename}`; // Adjust this path as needed
-    }
+    // let imagePath = '';
+    // if (req.file) {
+    //   imagePath = `/uploads/${req.file.filename}`; // Adjust this path as needed
+    // }
 
     // Create new product
     const products = new productModel({
@@ -45,7 +45,7 @@ const createProductController = async (req, res) => {
       threshold: 10,
       codeProducts,
       slug: slugify(productsName, { lower: true }), // Generate slug from product name
-      image: imagePath // Save the image path in the product model
+      // image: imagePath // Save the image path in the product model
     });
 
     // Save the product to the database

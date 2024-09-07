@@ -70,18 +70,18 @@ const setupMiddleware = async () => {
   };
 
   // Middleware
-  const uploadDir = path.join(__dirname, "uploads");
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-  }
+  // const uploadDir = path.join(__dirname, "uploads");
+  // if (!fs.existsSync(uploadDir)) {
+  //   fs.mkdirSync(uploadDir);
+  // }
   app.use(cors(corsOptions));
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
   app.use(session(sessionOptions));
   app.use(cookieParser("ab231"));
   app.use(methodOverride("_method"));
-  app.use("/uploads", express.static(uploadDir));
-  app.use("/images", express.static(path.join(__dirname, "public/images")));
+  // app.use("/uploads", express.static(uploadDir));
+  // app.use("/images", express.static(path.join(__dirname, "public/images")));
 
   // Routes
   app.use("/api/v1/products", productsRouter);
