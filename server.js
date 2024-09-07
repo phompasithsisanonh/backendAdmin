@@ -92,6 +92,7 @@ const setupMiddleware = async () => {
 
   try {
     await connectDB(process.env.MONGODB_URL);
+    
     console.log("MongoDB connected successfully");
   } catch (error) {
     console.error("DB connection error:", error);
