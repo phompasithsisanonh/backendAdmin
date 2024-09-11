@@ -22,7 +22,7 @@ const createProductController = async (req, res) => {
       codeProducts,
       discount,
       lowPrice,
-      discountExpiry
+      promotionEndTimeInMinutes,
     } = req.body;
 
     // Validate required fields
@@ -46,7 +46,6 @@ const createProductController = async (req, res) => {
       codeProducts,
       discount,
       lowPrice,
-      discountExpiry,
       slug: slugify(productsName, { lower: true }), // Generate slug from product name
       // image: imagePath // Save the image path in the product model
     });
@@ -55,7 +54,8 @@ const createProductController = async (req, res) => {
     await products.save();
     res.status(200).json({
       success: true,
-      message: `succefully`,
+      message: `succfluuly`,
+
       products,
     });
   } catch (error) {

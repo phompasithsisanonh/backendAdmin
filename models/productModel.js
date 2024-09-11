@@ -55,7 +55,10 @@ const productSchema = new Schema(
       required: true,
     },
     discount: { type: Number, required: true },
-    discountExpiry: Date
+    expirationDate: {
+      type: Date,
+      required: true,
+    },
   },
   { timestamps: true }
 );

@@ -1,7 +1,7 @@
 const orderModel = require("../models/orderModel");
 const productModel = require("../models/productModel");
 const customerModel = require("../models/customer");
-const { isAfter } = require('date-fns');
+const { isAfter } = require("date-fns");
 
 async function orderProducts(req, res) {
   try {
@@ -38,16 +38,10 @@ async function orderProducts(req, res) {
     // 3. Decrement product quantity
     product.quantity -= quantity;
     const totalProducts = price * quantity;
-    const now = new Date();
     let total = "";
-    if (
-      (product.discount > 0 &&
-        (!product.discountExpiry || isAfter(product.discountExpiry, now))) ||
-      totalProducts >= product.lowPrice 
-    ) {
+    if (totalProducts >= product.lowPrice) {
       let dic = (totalProducts * product.discount) / 100;
       let latdis = totalProducts - dic;
-      
       total = latdis;
     } else {
       total = totalProducts;

@@ -66,7 +66,24 @@ const deleteOrderController = async (req, res, next) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+const deleteDiscount = async (req, res, next) => {
+  try {
+    const result = await productsModel.deleteMany({
+      expirationDate: {
+        $lt: new Date(),
+      },
+      discount: 0,
+    });
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({
+      message: "fail ",
+    });
+  }
+};
 module.exports.deleteController = deleteController;
 module.exports.deleteCustomerController = deleteCustomerController;
 module.exports.deleteProductsController = deleteProductsController;
 module.exports.deleteOrderController = deleteOrderController;
+module.exports.deleteDiscount = deleteDiscount;

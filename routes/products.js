@@ -33,6 +33,7 @@ const {
   deleteCustomerController,
   deleteProductsController,
   deleteOrderController,
+  deleteDiscount,
 } = require("../controllers/deleteController");
 const { orderProducts, autocomplete } = require("../controllers/Inder");
 const { getAllOrder } = require("../controllers/getAllOrder");
@@ -132,6 +133,7 @@ router.delete("/delete/:id", deleteController);
 router.delete("/deleteCustomer/:id", deleteCustomerController);
 router.delete("/deleteProductsController/:id", deleteProductsController);
 router.delete("/deleteOrderController/:id", deleteOrderController);
+router.delete("/deleteDiscount", deleteDiscount);
 
 router.patch("/updateStatus/:id", updateStatus);
 module.exports = router;
