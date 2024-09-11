@@ -53,12 +53,20 @@ const orderSchema = new Schema(
       type: Number,
       required: true,
     },
+       total: {
+       type: String,
+       required: true,
+     },
     status: {
       type: String,
       required: true,
       default: "Not Process",
       enum: ["Not Process", "Processing", "Shipped", "cancel"],
     },
+    total:{
+      type: String,
+      required: true,
+    }
   },
   { timestamps: true }
 );

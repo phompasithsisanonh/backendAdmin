@@ -1,8 +1,12 @@
 const slugify = require("slugify");
 const productModel = require("../models/productModel");
-const multer = require('multer');
-const path = require('path');
-
+const multer = require("multer");
+const path = require("path");
+const {
+  differenceInSeconds,
+  formatDuration,
+  intervalToDuration,
+} = require("date-fns");
 const createProductController = async (req, res) => {
   try {
     // Destructure fields from req.body
@@ -16,6 +20,9 @@ const createProductController = async (req, res) => {
       size,
       status,
       codeProducts,
+      discount,
+      lowPrice,
+      discountExpiry
     } = req.body;
 
     // Validate required fields
@@ -26,13 +33,6 @@ const createProductController = async (req, res) => {
       });
     }
 
-    // Set image path if file is uploaded
-    // let imagePath = '';
-    // if (req.file) {
-    //   imagePath = `/uploads/${req.file.filename}`; // Adjust this path as needed
-    // }
-
-    // Create new product
     const products = new productModel({
       productsName,
       nameAdmin,
@@ -44,17 +44,18 @@ const createProductController = async (req, res) => {
       status,
       threshold: 10,
       codeProducts,
+      discount,
+      lowPrice,
+      discountExpiry,
       slug: slugify(productsName, { lower: true }), // Generate slug from product name
       // image: imagePath // Save the image path in the product model
     });
 
     // Save the product to the database
     await products.save();
-
-    // Send success response
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: "Product Created Successfully",
+      message: `succefully`,
       products,
     });
   } catch (error) {
@@ -68,3 +69,7 @@ const createProductController = async (req, res) => {
 };
 
 module.exports.createProductController = createProductController;
+// // let imagePath = '';
+// // if (req.file) {
+// //   imagePath = `/uploads/${req.file.filename}`; // Adjust this path as needed
+// // }

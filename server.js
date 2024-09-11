@@ -104,8 +104,8 @@ setupMiddleware().catch((error) => {
   console.error("Setup Error:", error);
   process.exit(1);
 });
-module.exports = app;
-// const PORT = 8000;
-// app.listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}`);
-// });
+// module.exports = app;
+const PORT = 8000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

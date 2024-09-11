@@ -50,6 +50,12 @@ const productSchema = new Schema(
       type: String,
       required: true,
     },
+    lowPrice: {
+      type: String,
+      required: true,
+    },
+    discount: { type: Number, required: true },
+    discountExpiry: Date
   },
   { timestamps: true }
 );

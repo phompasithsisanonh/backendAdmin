@@ -22,6 +22,7 @@ async function orderProducts(req, res) {
     // 1. Find the product by name
     const product = await productModel.findOne({ productsName }); // Use findOne to get a single document
     const customerNameed = await customerModel.findOne({ customerName }); // Use findOne to get a single document
+    console.log(product);
     if (!product || !customerNameed) {
       return res
         .status(404)
@@ -35,6 +36,31 @@ async function orderProducts(req, res) {
 
     // 3. Decrement product quantity
     product.quantity -= quantity;
+    // const totalProducts = price * quantity;
+    // let total = "";
+    // if (totalProducts >= product.lowPrice) {
+    //   let dic = (totalProducts * product.discount) / 100
+    //   let latdis =totalProducts-dic
+    //   total =latdis;
+    // } else {
+    //   total = totalProducts;
+    // }
+
+    let price_1 = price;
+    const now = new Date();
+    if (
+      product.discount > 0 &&
+      (!product.discountExpiry || isAfter(product.discountExpiry, now))
+    ) {
+      price_1 = price_1 * (1 - product.discount / 100);
+    }
+    const total = price * quantity;
+
+    if (total > 100000) {
+      // Apply 3% discount for orders over 100,000
+      total *=  product.discount;
+    }
+
     await product.save(); // Save the updated product
 
     // 4. Create the order
@@ -53,6 +79,7 @@ async function orderProducts(req, res) {
       price: price,
       pay: pay,
       status: status,
+      total,
     };
 
     const newOrder = await orderModel.create(newOrderData);
