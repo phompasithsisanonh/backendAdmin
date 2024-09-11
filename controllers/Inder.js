@@ -1,6 +1,7 @@
 const orderModel = require("../models/orderModel");
 const productModel = require("../models/productModel");
 const customerModel = require("../models/customer");
+const { isAfter } = require('date-fns');
 
 async function orderProducts(req, res) {
   try {
@@ -36,29 +37,20 @@ async function orderProducts(req, res) {
 
     // 3. Decrement product quantity
     product.quantity -= quantity;
-    // const totalProducts = price * quantity;
-    // let total = "";
-    // if (totalProducts >= product.lowPrice) {
-    //   let dic = (totalProducts * product.discount) / 100
-    //   let latdis =totalProducts-dic
-    //   total =latdis;
-    // } else {
-    //   total = totalProducts;
-    // }
-
-    let price_1 = price;
+    const totalProducts = price * quantity;
     const now = new Date();
+    let total = "";
     if (
-      product.discount > 0 &&
-      (!product.discountExpiry || isAfter(product.discountExpiry, now))
+      (product.discount > 0 &&
+        (!product.discountExpiry || isAfter(product.discountExpiry, now))) ||
+      totalProducts >= product.lowPrice 
     ) {
-      price_1 = price_1 * (1 - product.discount / 100);
-    }
-    const total = price * quantity;
-
-    if (total > 100000) {
-      // Apply 3% discount for orders over 100,000
-      total *=  product.discount;
+      let dic = (totalProducts * product.discount) / 100;
+      let latdis = totalProducts - dic;
+      
+      total = latdis;
+    } else {
+      total = totalProducts;
     }
 
     await product.save(); // Save the updated product
@@ -66,7 +58,6 @@ async function orderProducts(req, res) {
     // 4. Create the order
     const newOrderData = {
       user: userId,
-
       order_id: product._id,
       productsName: productsName, // Store product ID in productsName
       quantity: parseInt(quantity),
